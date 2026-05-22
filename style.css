@@ -343,7 +343,9 @@ body[lang="en"] .menu-item .top {
 /* ================= ADMIN BUTTON ================= */
 
 #adminBtn {
-  position: sticky;
+  position: absolute;
+  left: 0;
+  bottom: 0;
 
   padding: 10px 14px;
 
