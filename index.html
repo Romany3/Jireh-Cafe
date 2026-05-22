@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jireh Menu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+
+  <div class="nav-left">
+
+    <button id="menuBtn">☰</button>
+
+    <button id="langBtn">AR</button>
+
+  </div>
+
+</nav>
+  
+
+  <!-- OVERLAY -->
+  <div id="overlay"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <h3 id="sidebarTitle"></h3>
+    <div id="sideLinks"></div>
+  </div>
+
+  <h1 id="pageTitle">Jireh Menu</h1>
+
+  
+
+  <!-- MENU -->
+  <section id="menuContainer">
+    <div id="menu"></div>
+  </section>
+
+
+
+  <!-- PRODUCT POPUP -->
+  <div id="productPopup">
+
+    <div class="popup-card">
+
+      <button id="closePopup">✕</button>
+
+      <img id="popupImg" src="" alt="product">
+
+      <div class="popup-header">
+
+        <h2 id="popupName"></h2>
+
+        <span id="popupPrice"></span>
+
+      </div>
+
+      <p id="popupDesc"></p>
+
+    </div>
+
+  </div>
+
+  <!-- ADMIN BUTTON -->
+  <button id="adminBtn">Admin</button>
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="hidden">
+    <div class="login-card">
+      <h3>Admin Login</h3>
+
+      <input type="email" id="user" placeholder="Email">
+      <input type="password" id="pass" placeholder="Password">
+
+      <button onclick="login()">Login</button>
+      <button id="closeLogin">X</button>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel"></div>
+  
+
+  <!-- ================= CUSTOM ALERT ================= -->
+
+  <div id="customAlert">
+
+    <div class="alert-box">
+
+      <h2 id="alertTitle">Success</h2>
+
+      <p id="alertMessage">
+        Product Updated Successfully
+      </p>
+
+      <button id="alertBtn">
+        OK
+      </button>
+
+    </div>
+
+  </div>
+
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>
