@@ -1261,6 +1261,29 @@ body[lang="en"] .menu-item .top {
   cursor: pointer;
 }
 
+/* ================= DRINK CHECK ================= */
+.drink-check{
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 14px;
+
+  color: #f5d7a1;
+}
+
+.drink-check input{
+  width: auto !important;
+}
+
+input:disabled{
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
 /* ================= TABLET ================= */
 
 @media (min-width: 768px) {
