@@ -25,6 +25,7 @@ let categories = [];
 let products = [];
 
 let updatedProductId = null;
+let editingProductId = null;
 
 // ================= TITLE STATE
 let currentTitle = "Jireh Menu";
@@ -47,6 +48,14 @@ function renderAdminPanel() {
     <input id="pname_ar" placeholder="Product Name AR">
 
     <input id="pprice" placeholder="Price">
+    <label class="drink-check">
+      <input type="checkbox" id="hasSizes">
+      Drink With Sizes
+    </label>
+
+    <input id="plargePrice"
+    placeholder="Large Price"
+    disabled>
 
     <input id="pdesc" placeholder="Description EN">
     <input id="pdesc_ar" placeholder="Description AR">
@@ -61,12 +70,18 @@ function renderAdminPanel() {
 
       <h3>Edit Product</h3>
 
-      <input id="editId" placeholder="ID" readonly>
-
       <input id="editName" placeholder="Name EN">
       <input id="editName_ar" placeholder="Name AR">
 
       <input id="editPrice" placeholder="Price">
+      <label class="drink-check">
+        <input type="checkbox" id="editHasSizes">
+        Drink With Sizes
+      </label>
+
+      <input id="editLargePrice"
+      placeholder="Large Price"
+      disabled>
 
       <input id="editDesc" placeholder="Description EN">
       <input id="editDesc_ar" placeholder="Description AR">
@@ -146,6 +161,9 @@ function setupAdminEvents() {
       imageURL = await uploadImage(file);
     }
 
+    const hasSizes =
+    document.getElementById("hasSizes").checked;
+
     await addDoc(collection(db, "products"), {
 
       name:
@@ -157,6 +175,12 @@ function setupAdminEvents() {
       price: Number(
         document.getElementById("pprice").value
       ),
+
+      largePrice: hasSizes
+        ? Number(document.getElementById("plargePrice").value)
+        : null,
+
+      hasSizes: hasSizes,
 
       description:
         document.getElementById("pdesc").value,
@@ -209,13 +233,22 @@ function setupAdminEvents() {
 
     const p = products.find(x => x.id === id);
 
-    document.getElementById("editId").value = p.id;
+    editingProductId = p.id;
 
     document.getElementById("editName").value = p.name;
 
     document.getElementById("editName_ar").value = p.name_ar;
 
     document.getElementById("editPrice").value = p.price;
+
+    document.getElementById("editHasSizes").checked =
+    p.hasSizes || false;
+
+    document.getElementById("editLargePrice").disabled =
+    !p.hasSizes;
+
+    document.getElementById("editLargePrice").value =
+    p.largePrice || "";
 
     document.getElementById("editDesc").value = p.description;
 
@@ -232,6 +265,30 @@ function setupAdminEvents() {
     });
   };
 
+  // ================= TOGGLE LARGE PRICE
+  document.getElementById("hasSizes")
+  .onchange = function () {
+
+    document.getElementById("plargePrice")
+      .disabled = !this.checked;
+
+    if (!this.checked) {
+      document.getElementById("plargePrice").value = "";
+    }
+  };
+
+  // ================= EDIT TOGGLE
+  document.getElementById("editHasSizes")
+  .onchange = function () {
+
+    document.getElementById("editLargePrice")
+      .disabled = !this.checked;
+
+    if (!this.checked) {
+      document.getElementById("editLargePrice").value = "";
+    }
+  };
+
   // ================= UPDATE PRODUCT
   document.getElementById("updateBtn").onclick = async () => {
 
@@ -242,12 +299,12 @@ function setupAdminEvents() {
     if (file) {
       imageURL = await uploadImage(file);
     } else {
-      const old = products.find(p => p.id === document.getElementById("editId").value);
+      const old = products.find(p => p.id === editingProductId);
       imageURL = old?.image || "";
     }
 
-    updatedProductId = document.getElementById("editId").value;
-    await updateDoc(doc(db, "products", document.getElementById("editId").value), {
+    updatedProductId = editingProductId;
+    await updateDoc(doc(db, "products", editingProductId), {
 
       name: document.getElementById("editName").value,
 
@@ -255,9 +312,18 @@ function setupAdminEvents() {
 
       price: Number(document.getElementById("editPrice").value),
 
+      hasSizes:
+        document.getElementById("editHasSizes").checked,
+
+      largePrice:
+        document.getElementById("editHasSizes").checked
+          ? Number(document.getElementById("editLargePrice").value)
+          : null,
+
       description: document.getElementById("editDesc").value,
 
-      description_ar: document.getElementById("editDesc_ar").value,
+      description_ar:
+        document.getElementById("editDesc_ar").value,
 
       category: document.getElementById("editCat").value,
 
@@ -618,12 +684,14 @@ function renderSidebar() {
 // ================= PRODUCT POPUP
 const productPopup = document.getElementById("productPopup");
 
-window.openProduct = (name, price, desc, desc_ar, img) => {
+window.openProduct = (name, price, largePrice, hasSizes, desc, desc_ar, img) => {
 
   document.getElementById("popupName").innerText = name;
 
   document.getElementById("popupPrice").innerText =
-    price + " EGP";
+  hasSizes === "true"
+    ? `M ${price} EGP | L ${largePrice} EGP`
+    : `${price} EGP`;
 
   document.getElementById("popupDesc").innerText =
   currentLang === "en"
@@ -715,6 +783,8 @@ function renderMenu(filterCat = null) {
             onclick="openProduct(
               '${currentLang === "en" ? p.name : p.name_ar}',
               '${p.price}',
+              '${p.largePrice || ""}',
+              '${p.hasSizes}',
               '${p.description || ""}',
               '${p.description_ar || ""}',
               '${p.image || "img/default.jpg"}'
@@ -724,7 +794,13 @@ function renderMenu(filterCat = null) {
 
               <h3>${currentLang === "en" ? p.name : p.name_ar}</h3>
 
-              <span>${p.price} EGP</span>
+              <span>
+                ${
+                  p.hasSizes
+                    ? `M - ${p.price} EGP | L - ${p.largePrice} EGP`
+                    : `${p.price} EGP`
+                }
+              </span>
 
             </div>
 
