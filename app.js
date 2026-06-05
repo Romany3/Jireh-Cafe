@@ -57,8 +57,11 @@ function renderAdminPanel() {
     placeholder="Large Price"
     disabled>
 
-    <input id="pdesc" placeholder="Description EN">
-    <input id="pdesc_ar" placeholder="Description AR">
+    <textarea id="pdesc"
+    placeholder="Description EN"></textarea>
+
+    <textarea id="pdesc_ar"
+    placeholder="Description AR"></textarea>
 
     <select id="pcat"></select>
 
@@ -83,8 +86,11 @@ function renderAdminPanel() {
       placeholder="Large Price"
       disabled>
 
-      <input id="editDesc" placeholder="Description EN">
-      <input id="editDesc_ar" placeholder="Description AR">
+      <textarea id="editDesc"
+      placeholder="Description EN"></textarea>
+
+      <textarea id="editDesc_ar"
+      placeholder="Description AR"></textarea>
 
       <input type="file" id="editImage">
 
