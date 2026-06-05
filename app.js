@@ -169,6 +169,8 @@ function setupAdminEvents() {
       name:
         document.getElementById("pname").value,
 
+      order: Date.now(),
+
       name_ar:
         document.getElementById("pname_ar").value,
 
@@ -631,12 +633,34 @@ async function loadData() {
   });
 
   // ================= PRODUCTS WITH ID
-  prodSnap.forEach(d => {
+  let maxOrder = Math.max(
+    ...prodSnap.docs.map(d => d.data().order || 0),
+    0
+  );
+
+  for (const d of prodSnap.docs) {
+
+    const data = d.data();
+
+    if (data.order === undefined) {
+
+      maxOrder++;
+
+      await updateDoc(
+        doc(db, "products", d.id),
+        {
+          order: maxOrder
+        }
+      );
+
+      data.order = maxOrder;
+    }
+
     products.push({
       id: d.id,
-      ...d.data()
+      ...data
     });
-  });
+  }
 
   loadCategories();
 renderSidebar();
@@ -774,8 +798,9 @@ function renderMenu(filterCat = null) {
     const container = document.getElementById(safeId);
 
     products
-      .filter(p => p.category === cat.name)
-      .forEach(p => {
+        .filter(p => p.category === cat.name)
+        .sort((a,b)=>(a.order||0)-(b.order||0))
+        .forEach(p => {
 
         container.innerHTML += `
           <div class="menu-item ${updatedProductId === p.id ? "updated-highlight" : ""}"
@@ -806,6 +831,18 @@ function renderMenu(filterCat = null) {
 
             ${isAdmin ? `
               <div class="admin-actions">
+
+                <button class="move-btn"
+                  onclick="event.stopPropagation();
+                  moveUp('${p.id}')">
+                  ▲
+                </button>
+
+                <button class="move-btn"
+                  onclick="event.stopPropagation();
+                  moveDown('${p.id}')">
+                  ▼
+                </button>
 
                 <button class="edit-btn"
                   onclick="event.stopPropagation();
@@ -962,6 +999,66 @@ document.getElementById("langBtn").onclick = () => {
 };
 
 
+// ================= MOVE PRODUCT UP/ DOWN
+window.moveUp = async (id) => {
+
+  const current =
+    products.find(p => p.id === id);
+
+  if (!current) return;
+
+  const above = products
+    .filter(
+      p =>
+        p.category === current.category &&
+        p.order < current.order
+    )
+    .sort((a,b)=>b.order-a.order)[0];
+
+  if (!above) return;
+
+  await updateDoc(
+    doc(db,"products",current.id),
+    { order: above.order }
+  );
+
+  await updateDoc(
+    doc(db,"products",above.id),
+    { order: current.order }
+  );
+
+  loadData();
+};
+
+window.moveDown = async (id) => {
+
+  const current =
+    products.find(p => p.id === id);
+
+  if (!current) return;
+
+  const below = products
+    .filter(
+      p =>
+        p.category === current.category &&
+        p.order > current.order
+    )
+    .sort((a,b)=>a.order-b.order)[0];
+
+  if (!below) return;
+
+  await updateDoc(
+    doc(db,"products",current.id),
+    { order: below.order }
+  );
+
+  await updateDoc(
+    doc(db,"products",below.id),
+    { order: current.order }
+  );
+
+  loadData();
+};
 
 // ================= INIT
 loadData();
