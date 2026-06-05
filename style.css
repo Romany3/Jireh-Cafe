@@ -1126,6 +1126,7 @@ body[lang="en"] .menu-item .top {
 /* ================= DESCRIPTION ================= */
 
 #popupDesc{
+  font-family: sans-serif;
 
   padding: 20px;
 
@@ -1282,6 +1283,70 @@ input:disabled{
   opacity: 0.5;
 
   cursor: not-allowed;
+}
+
+
+
+/* ================= MOVE BUTTONS ================= */
+
+.move-btn{
+
+  width: 46px;
+
+  height: 46px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 14px;
+
+  border:
+    1px solid rgba(245,193,108,0.18);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(245,193,108,0.16),
+      rgba(245,193,108,0.05)
+    );
+
+  color: #f5d7a1;
+
+  font-size: 18px;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(10px);
+
+  transition: 0.25s ease;
+
+  box-shadow:
+    0 10px 20px rgba(0,0,0,0.18);
+}
+
+.move-btn:hover{
+
+  transform:
+    translateY(-2px);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(245,193,108,0.28),
+      rgba(245,193,108,0.12)
+    );
+
+  box-shadow:
+    0 15px 25px rgba(245,193,108,0.18);
+}
+
+.move-btn:active{
+
+  transform:
+    scale(0.94);
 }
 
 /* ================= TABLET ================= */
