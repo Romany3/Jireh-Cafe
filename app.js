@@ -40,7 +40,7 @@ function renderAdminPanel() {
 
   adminPanel.innerHTML = `
   
-    <h2>Admin Panel🔥</h2>
+    <h2>Admin Panel</h2>
 
     <h3>ADD Product</h3>
 
