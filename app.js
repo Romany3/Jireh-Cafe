@@ -68,6 +68,20 @@ function renderAdminPanel() {
 
     <input type="file" id="pimage">
 
+    <img
+      id="imagePreview"
+      src=""
+      style="
+        width:120px;
+        height:120px;
+        object-fit:cover;
+        margin-top:10px;
+        display:none;
+        border-radius:10px;
+        border:1px solid #ccc;
+      "
+    >
+
     <button id="addBtn">Add Product</button>
 
     <div id="editSection">
@@ -94,6 +108,20 @@ function renderAdminPanel() {
       placeholder="Description AR"></textarea>
 
       <input type="file" id="editImage">
+
+      <img
+        id="editImagePreview"
+        src=""
+        style="
+          width:120px;
+          height:120px;
+          object-fit:cover;
+          margin:10px;
+          display:none;
+          border-radius:10px;
+          border:1px solid #ccc;
+        "
+      >
 
       <select id="editCat"></select>
 
@@ -340,6 +368,7 @@ function setupAdminEvents() {
       document.getElementById("pdesc").value = "";
       document.getElementById("pdesc_ar").value = "";
       document.getElementById("pimage").value = "";
+      document.getElementById("imagePreview").style.display = "none";
       document.getElementById("hasSizes").checked = false;
 
       loadData();
@@ -386,35 +415,48 @@ function setupAdminEvents() {
     const p = products.find(x => x.id === id);
 
     editingProductId = p.id;
-
     document.getElementById("editName").value = p.name;
-
     document.getElementById("editName_ar").value = p.name_ar;
-
     document.getElementById("editPrice").value = p.price;
-
-    document.getElementById("editHasSizes").checked =
-    p.hasSizes || false;
-
-    document.getElementById("editLargePrice").disabled =
-    !p.hasSizes;
-
-    document.getElementById("editLargePrice").value =
-    p.largePrice || "";
-
+    document.getElementById("editHasSizes").checked = p.hasSizes || false;
+    document.getElementById("editLargePrice").disabled = !p.hasSizes;
+    document.getElementById("editLargePrice").value = p.largePrice || "";
     document.getElementById("editDesc").value = p.description;
-
-    document.getElementById("editDesc_ar").value =
-      p.description_ar;
-
-    document.getElementById("editCat").value =
-      p.category;
-
+    document.getElementById("editDesc_ar").value = p.description_ar;
+    document.getElementById("editCat").value = p.category;
+    document.getElementById("editImagePreview").src =p.image || "img/default.jpg";
+    document.getElementById("editImagePreview").style.display = "block";
     document.getElementById("editSection")
     .scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
+  };
+
+  // ================= IMAGE PREVIEW
+  document.getElementById("pimage")
+  .onchange = function(){
+
+    const file = this.files[0];
+
+    const preview =
+    document.getElementById(
+      "imagePreview"
+    );
+
+    if(file){
+
+      preview.src =
+      URL.createObjectURL(file);
+
+      preview.style.display =
+      "block";
+
+    }else{
+
+      preview.style.display =
+      "none";
+    }
   };
 
   // ================= TOGGLE LARGE PRICE
@@ -426,6 +468,28 @@ function setupAdminEvents() {
 
     if (!this.checked) {
       document.getElementById("plargePrice").value = "";
+    }
+  };
+
+  // ================= EDIT IMAGE PREVIEW
+  document.getElementById("editImage")
+  .onchange = function(){
+
+    const file = this.files[0];
+
+    const preview =
+    document.getElementById(
+      "editImagePreview"
+    );
+
+    if(file){
+
+      preview.src =
+      URL.createObjectURL(file);
+
+      preview.style.display =
+      "block";
+
     }
   };
 
@@ -596,6 +660,7 @@ function setupAdminEvents() {
     document.getElementById("editDesc").value = "";
     document.getElementById("editDesc_ar").value = "";
     document.getElementById("editImage").value = "";
+    document.getElementById("editImagePreview").style.display = "none";
     document.getElementById("editHasSizes").checked = false;
     document.getElementById("editLargePrice").disabled = true;
     editingProductId = null;
