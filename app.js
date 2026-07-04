@@ -26,6 +26,7 @@ let products = [];
 
 let updatedProductId = null;
 let editingProductId = null;
+let isSubmitting = false;
 
 // ================= TITLE STATE
 let currentTitle = "Jireh Menu";
@@ -185,58 +186,172 @@ function setupAdminEvents() {
 
   document.getElementById("addBtn").onclick = async () => {
 
-    if (!validateProduct()) return;
+    if (isSubmitting) return;
 
-    let imageURL = "";
+    isSubmitting = true;
 
-    const file =
+    const addBtn =
+      document.getElementById("addBtn");
+
+    addBtn.disabled = true;
+    addBtn.innerText = "Adding...";
+
+    try {
+
+      // ================= VALIDATION
+
+      const name =
+        document.getElementById("pname")
+        .value.trim();
+
+      const nameAr =
+        document.getElementById("pname_ar")
+        .value.trim();
+
+      const price =
+        Number(
+          document.getElementById("pprice")
+          .value
+        );
+
+      const hasSizes =
+        document.getElementById("hasSizes")
+        .checked;
+
+      const largePrice =
+        Number(
+          document.getElementById("plargePrice")
+          .value
+        );
+
+      if (!name) {
+        showAlert("Error ❌", "Product name required");
+        throw new Error();
+      }
+
+      if (!nameAr) {
+        showAlert("Error ❌", "Arabic name required");
+        throw new Error();
+      }
+
+      if (price <= 0 || isNaN(price)) {
+        showAlert("Error ❌", "Invalid price");
+        throw new Error();
+      }
+
+      // Description EN مطلوب
+      if (!document.getElementById("pdesc").value.trim()) {
+        showAlert("Error ❌", "Description EN required");
+        throw new Error();
+      }
+
+      // Description AR مطلوب
+      if (!document.getElementById("pdesc_ar").value.trim()) {
+        showAlert("Error ❌", "Description AR required");
+        throw new Error();
+      }
+
+      // صورة مطلوبة
+      const file =
       document.getElementById("pimage").files[0];
 
-    if (file) {
-      imageURL = await uploadImage(file);
+      if (!file) {
+        showAlert("Error ❌", "Image required");
+        throw new Error();
+      }
+
+      // Large Price اختياري
+      if (
+        hasSizes &&
+        document.getElementById("plargePrice").value &&
+        (largePrice <= 0 || isNaN(largePrice))
+      ) {
+        showAlert("Error ❌", "Invalid large price");
+        throw new Error();
+      }
+
+      const exists = products.some(
+        p => p.name.toLowerCase() === name.toLowerCase()
+      );
+
+      if (exists) {
+        showAlert("Error ❌", "Product already exists");
+        throw new Error();
+      }
+
+      let imageURL = "";
+
+      if (file) {
+
+        imageURL =
+          await uploadImage(file);
+      }
+
+      await addDoc(
+        collection(db, "products"),
+        {
+
+          name: name,
+
+          name_ar: nameAr,
+
+          price: price,
+
+          order: Date.now(),
+
+          hasSizes: hasSizes,
+
+          largePrice:
+            hasSizes &&
+            document.getElementById(
+            "plargePrice"
+            ).value
+            ? largePrice
+            : null,
+
+          description:
+            document.getElementById(
+            "pdesc"
+            ).value,
+
+          description_ar:
+            document.getElementById(
+            "pdesc_ar"
+            ).value,
+
+          category:
+            document.getElementById(
+            "pcat"
+            ).value,
+
+          image: imageURL
+        }
+      );
+
+      showAlert(
+        "Success ✅",
+        "Product Added Successfully"
+      );
+
+      document.getElementById("pname").value = "";
+      document.getElementById("pname_ar").value = "";
+      document.getElementById("pprice").value = "";
+      document.getElementById("plargePrice").value = "";
+      document.getElementById("pdesc").value = "";
+      document.getElementById("pdesc_ar").value = "";
+      document.getElementById("pimage").value = "";
+      document.getElementById("hasSizes").checked = false;
+
+      loadData();
+
+    } finally {
+
+      isSubmitting = false;
+
+      addBtn.disabled = false;
+
+      addBtn.innerText = "Add Product";
     }
-
-    const hasSizes =
-    document.getElementById("hasSizes").checked;
-
-    await addDoc(collection(db, "products"), {
-
-      name:
-        document.getElementById("pname").value,
-
-      order: Date.now(),
-
-      name_ar:
-        document.getElementById("pname_ar").value,
-
-      price: Number(
-        document.getElementById("pprice").value
-      ),
-
-      largePrice: hasSizes
-        ? Number(document.getElementById("plargePrice").value)
-        : null,
-
-      hasSizes: hasSizes,
-
-      description:
-        document.getElementById("pdesc").value,
-
-      description_ar:
-        document.getElementById("pdesc_ar").value,
-
-      category:
-        document.getElementById("pcat").value,
-
-      image: imageURL
-    });
-
-    showAlert(
-      "Success ✅",
-      "Product Added Successfully"
-    );
-
-    loadData();
   };
 
   // ================= FILL CATEGORY EDIT INPUTS
@@ -329,6 +444,111 @@ function setupAdminEvents() {
   // ================= UPDATE PRODUCT
   document.getElementById("updateBtn").onclick = async () => {
 
+    if(isSubmitting) return;
+
+    isSubmitting = true;
+
+    const updateBtn =
+    document.getElementById("updateBtn");
+
+    updateBtn.disabled = true;
+
+    updateBtn.innerText = "Updating...";
+
+    // ================= VALIDATION
+
+    const name =
+    document.getElementById("editName")
+    .value.trim();
+
+    const nameAr =
+    document.getElementById("editName_ar")
+    .value.trim();
+
+    const price =
+    Number(
+    document.getElementById("editPrice")
+    .value
+    );
+
+    const hasSizes =
+    document.getElementById("editHasSizes")
+    .checked;
+
+    const largePrice =
+    Number(
+    document.getElementById("editLargePrice")
+    .value
+    );
+
+    // Name required
+    if(!name){
+
+    showAlert(
+    "Error ❌",
+    "Product name required"
+    );
+
+    return;
+    }
+
+    // Arabic name required
+    if(!nameAr){
+
+    showAlert(
+    "Error ❌",
+    "Arabic name required"
+    );
+
+    return;
+    }
+
+    // Invalid price
+    if(price <= 0 || isNaN(price)){
+
+    showAlert(
+    "Error ❌",
+    "Invalid price"
+    );
+
+    return;
+    }
+
+    // Optional Large Price validation
+    if(
+    hasSizes &&
+    document.getElementById("editLargePrice").value &&
+    (largePrice <= 0 || isNaN(largePrice))
+    ){
+
+    showAlert(
+    "Error ❌",
+    "Invalid large price"
+    );
+
+    return;
+    }
+
+    // Duplicate name
+    const exists = products.some(
+    p =>
+    p.id !== editingProductId &&
+    p.name.toLowerCase() ===
+    name.toLowerCase()
+    );
+
+    if(exists){
+
+    showAlert(
+    "Error ❌",
+    "Product already exists"
+    );
+
+    return;
+    }
+
+    try{
+    
     let imageURL = "";
 
     const file = document.getElementById("editImage").files[0];
@@ -349,13 +569,13 @@ function setupAdminEvents() {
 
       price: Number(document.getElementById("editPrice").value),
 
-      hasSizes:
-        document.getElementById("editHasSizes").checked,
+      hasSizes: hasSizes,
 
       largePrice:
-        document.getElementById("editHasSizes").checked
-          ? Number(document.getElementById("editLargePrice").value)
-          : null,
+      hasSizes &&
+      document.getElementById("editLargePrice").value
+      ? largePrice
+      : null,
 
       description: document.getElementById("editDesc").value,
 
@@ -369,13 +589,27 @@ function setupAdminEvents() {
 
     showAlert("Success ✅", "Product Updated Successfully");
 
-    document.getElementById("pname").value = "";
-    document.getElementById("pname_ar").value = "";
-    document.getElementById("pprice").value = "";
-    document.getElementById("pdesc").value = "";
-    document.getElementById("pimage").value = "";
+    document.getElementById("editName").value = "";
+    document.getElementById("editName_ar").value = "";
+    document.getElementById("editPrice").value = "";
+    document.getElementById("editLargePrice").value = "";
+    document.getElementById("editDesc").value = "";
+    document.getElementById("editDesc_ar").value = "";
+    document.getElementById("editImage").value = "";
+    document.getElementById("editHasSizes").checked = false;
+    document.getElementById("editLargePrice").disabled = true;
+    editingProductId = null;
 
     loadData();
+  }
+  finally{
+
+    isSubmitting = false;
+
+    updateBtn.disabled = false;
+
+    updateBtn.innerText = "Update";
+  }
   };
 
   // ================= ADD CATEGORY
@@ -512,11 +746,56 @@ function setupAdminEvents() {
   // ================= DELETE CATEGORY
   document.getElementById("deleteCatBtn").onclick =
   async () => {
-    const id = document.getElementById("catList").value;
-    await deleteDoc(
-      doc(db, "categories", id)
+
+    const id =
+    document.getElementById("catList").value;
+
+    const category =
+    categories.find(c => c.id === id);
+
+    if(!category) return;
+
+    const relatedProducts =
+    products.filter(
+      p => p.category === category.name
     );
-    showAlert("Success ✅", "Category Deleted Successfully");
+
+    // لو فيه منتجات مرتبطة
+    if(relatedProducts.length > 0){
+
+      const confirmDelete = confirm(
+        `This category contains ${relatedProducts.length} products.\nDelete everything?`
+      );
+
+      if(!confirmDelete) return;
+
+      // حذف المنتجات المرتبطة
+      for(const product of relatedProducts){
+
+        await deleteDoc(
+          doc(
+            db,
+            "products",
+            product.id
+          )
+        );
+      }
+    }
+
+    // حذف الكاتيجوري نفسها
+    await deleteDoc(
+      doc(
+        db,
+        "categories",
+        id
+      )
+    );
+
+    showAlert(
+      "Success ✅",
+      "Category Deleted Successfully"
+    );
+
     loadData();
   };
 }
