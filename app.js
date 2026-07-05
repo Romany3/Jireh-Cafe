@@ -368,7 +368,7 @@ function setupAdminEvents() {
       document.getElementById("pdesc").value = "";
       document.getElementById("pdesc_ar").value = "";
       document.getElementById("pimage").value = "";
-      document.getElementById("previewImg").src = "";
+      document.getElementById("imagePreview").src = "";
       document.getElementById("imagePreview").style.display = "none";
       document.getElementById("hasSizes").checked = false;
 
@@ -472,16 +472,21 @@ function setupAdminEvents() {
 
     if(file){
 
-      preview.src =
-      URL.createObjectURL(file);
+      const imageUrl = URL.createObjectURL(file);
 
-      preview.style.display =
-      "block";
+      preview.src = imageUrl;
+
+      preview.onload = () => {
+        URL.revokeObjectURL(
+          imageUrl
+        );
+      };
+
+      preview.style.display = "block";
 
     }else{
 
-      preview.style.display =
-      "none";
+      preview.style.display = "none";
     }
   };
 
@@ -509,13 +514,14 @@ function setupAdminEvents() {
     );
 
     if(file){
-
-      preview.src =
-      URL.createObjectURL(file);
-
-      preview.style.display =
-      "block";
-
+      const imageUrl = URL.createObjectURL(file);
+      preview.src = imageUrl;
+      preview.onload = () => {
+        URL.revokeObjectURL(
+          imageUrl
+        );
+      };
+      preview.style.display = "block";
     }
   };
 
@@ -544,6 +550,12 @@ function setupAdminEvents() {
     updateBtn.disabled = true;
 
     updateBtn.innerText = "Updating...";
+
+    function resetUpdateState(){
+      isSubmitting = false;
+      updateBtn.disabled = false;
+      updateBtn.innerText = "Update";
+    }
 
     // ================= VALIDATION
 
@@ -578,6 +590,7 @@ function setupAdminEvents() {
     "Error ❌",
     "Product name required"
     );
+    resetUpdateState();
 
     return;
     }
@@ -589,6 +602,7 @@ function setupAdminEvents() {
     "Error ❌",
     "Arabic name required"
     );
+    resetUpdateState();
 
     return;
     }
@@ -600,6 +614,7 @@ function setupAdminEvents() {
     "Error ❌",
     "Invalid price"
     );
+    resetUpdateState();
 
     return;
     }
@@ -615,6 +630,7 @@ function setupAdminEvents() {
     "Error ❌",
     "Invalid large price"
     );
+    resetUpdateState();
 
     return;
     }
@@ -633,6 +649,7 @@ function setupAdminEvents() {
     "Error ❌",
     "Product already exists"
     );
+    resetUpdateState();
 
     return;
     }
@@ -686,7 +703,7 @@ function setupAdminEvents() {
     document.getElementById("editDesc").value = "";
     document.getElementById("editDesc_ar").value = "";
     document.getElementById("editImage").value = "";
-    document.getElementById("editPreviewImg").src = "";
+    document.getElementById("editImagePreview").src = "";
     document.getElementById("editImagePreview").style.display = "none";
     document.getElementById("editHasSizes").checked = false;
     document.getElementById("editLargePrice").disabled = true;
@@ -1141,71 +1158,123 @@ async function uploadImage(file) {
 
   const data = await res.json();
 
-  return data.secure_url;
+  return data.secure_url.replace("/upload/","/upload/f_auto,q_auto/");
 }
 
 // ================= LOAD DATA
 async function loadData() {
 
-  const catSnap = await getDocs(collection(db, "categories"));
-  const prodSnap = await getDocs(collection(db, "products"));
+try{
+
+  const catSnap =
+  await getDocs(
+    collection(db, "categories")
+  );
+
+  const prodSnap =
+  await getDocs(
+    collection(db, "products")
+  );
 
   categories = [];
   products = [];
 
   // ================= CATEGORIES WITH ID
   catSnap.forEach(d => {
+
     categories.push({
+
       id: d.id,
       ...d.data()
+
     });
   });
 
   // ================= PRODUCTS WITH ID
+
   let maxOrder = Math.max(
-    ...prodSnap.docs.map(d => d.data().order || 0),
+
+    ...prodSnap.docs.map(
+      d => d.data().order || 0
+    ),
+
     0
   );
 
-  for (const d of prodSnap.docs) {
+  for(const d of prodSnap.docs){
 
     const data = d.data();
 
-    if (data.order === undefined) {
+    if(data.order === undefined){
 
       maxOrder++;
 
       await updateDoc(
-        doc(db, "products", d.id),
+        doc(
+          db,
+          "products",
+          d.id
+        ),
         {
-          order: maxOrder
+          order:maxOrder
         }
       );
 
-      data.order = maxOrder;
+      data.order =
+      maxOrder;
     }
 
     products.push({
-      id: d.id,
+
+      id:d.id,
       ...data
+
     });
   }
 
   loadCategories();
-renderSidebar();
 
-const savedCategory =
-  localStorage.getItem("selectedCategory");
+  renderSidebar();
 
-if (savedCategory && savedCategory !== "all") {
+  const savedCategory =
+  localStorage.getItem(
+    "selectedCategory"
+  );
 
-  renderMenu(savedCategory);
+  if(
+    savedCategory &&
+    savedCategory !== "all"
+  ){
 
-} else {
+    renderMenu(
+      savedCategory
+    );
 
-  renderMenu();
+  }else{
+
+    renderMenu();
+  }
+
+}catch(error){
+
+console.log(error);
+
+showAlert(
+"Error ❌",
+"Failed to load data"
+);
+
+}finally{
+
+document.getElementById(
+"pageLoader"
+)
+.classList.add(
+"hide"
+);
 
 }
+
 }
 
 // ================= SIDEBAR RENDER
@@ -1285,126 +1354,213 @@ function renderMenu(filterCat = null) {
   // ================= TITLE LOGIC
   if (filterCat) {
 
-    const cat = categories.find(c => c.name === filterCat);
+    const cat = categories.find(
+      c => c.name === filterCat
+    );
 
-    currentTitle = currentLang === "en"
+    currentTitle =
+      currentLang === "en"
       ? cat?.name
       : cat?.name_ar;
 
-    catsToShow = categories.filter(c => c.name === filterCat);
+    catsToShow =
+      categories.filter(
+        c => c.name === filterCat
+      );
 
   } else {
 
-    currentTitle = currentLang === "en"
+    currentTitle =
+      currentLang === "en"
       ? "Jireh Menu"
       : "المنيو";
 
     catsToShow = categories;
   }
 
-  // 🔥 IMPORTANT FIX
   title.innerText = currentTitle;
 
-  // ================= RENDER
-  catsToShow.forEach(cat => {
+  // ================= SKELETON
+  // لو الكاتيجوري لسه محملتش
+  if (categories.length === 0) {
 
-    const safeId = cat.name.replaceAll(" ", "_");
+    for(let i = 0; i < 6; i++) {
 
-    if (!filterCat) {
       menu.innerHTML += `
-        <h2 class="cat-title">
-          ${currentLang === "en" ? cat.name : cat.name_ar}
-        </h2>
-
-        <div class="cat-block" id="${safeId}"></div>
-      `;
-    } else {
-      menu.innerHTML += `
-        <div class="cat-block" id="${safeId}"></div>
+      <div class="skeleton-item">
+        <div class="skeleton-title"></div>
+        <div class="skeleton-price"></div>
+      </div>
       `;
     }
 
-    const container = document.getElementById(safeId);
+    return;
+  }
+
+  // ================= RENDER PRODUCTS
+  catsToShow.forEach(cat => {
+
+    const safeId =
+      cat.name.replace(
+        /[^a-zA-Z0-9]/g,
+        "_"
+      );
+
+    if (!filterCat) {
+
+      menu.innerHTML += `
+        <h2 class="cat-title">
+          ${
+            currentLang === "en"
+            ? cat.name
+            : cat.name_ar
+          }
+        </h2>
+
+        <div
+          class="cat-block"
+          id="${safeId}">
+        </div>
+      `;
+
+    } else {
+
+      menu.innerHTML += `
+        <div
+          class="cat-block"
+          id="${safeId}">
+        </div>
+      `;
+    }
+
+    const container =
+      document.getElementById(
+        safeId
+      );
 
     products
-        .filter(p => p.category === cat.name)
-        .sort((a,b)=>(a.order||0)-(b.order||0))
-        .forEach(p => {
+      .filter(
+        p => p.category === cat.name
+      )
+      .sort(
+        (a,b)=>
+        (a.order||0) -
+        (b.order||0)
+      )
+      .forEach(p => {
 
-        container.innerHTML += `
-          <div class="menu-item ${updatedProductId === p.id ? "updated-highlight" : ""}"
-            data-id="${p.id}"
-            onclick="openProduct(
-              '${currentLang === "en" ? p.name : p.name_ar}',
-              '${p.price}',
-              '${p.largePrice || ""}',
-              '${p.hasSizes}',
-              '${p.description || ""}',
-              '${p.description_ar || ""}',
-              '${p.image || "img/default.jpg"}'
-            )">
+      container.innerHTML += `
+        <div
+          class="menu-item ${
+            updatedProductId === p.id
+            ? "updated-highlight"
+            : ""
+          }"
 
-            <div class="top">
+          data-id="${p.id}"
 
-              <h3>${currentLang === "en" ? p.name : p.name_ar}</h3>
+          onclick='openProduct(
+            ${JSON.stringify(
+              currentLang === "en"
+              ? p.name
+              : p.name_ar
+            )},
+            ${JSON.stringify(p.price)},
+            ${JSON.stringify(
+              p.largePrice || ""
+            )},
+            ${JSON.stringify(
+              p.hasSizes
+            )},
+            ${JSON.stringify(
+              p.description || ""
+            )},
+            ${JSON.stringify(
+              p.description_ar || ""
+            )},
+            ${JSON.stringify(
+              p.image ||
+              "img/default.jpg"
+            )}
+          )'>
 
-              <div>
+          <div class="top">
+
+            <h3>
+            ${
+              currentLang === "en"
+              ? p.name
+              : p.name_ar
+            }
+            </h3>
+
+            <div>
+
               <span>
-                ${
-                  p.hasSizes
-                    ? `M - ${p.price} EGP | L - ${p.largePrice} EGP`
-                    : `${p.price} EGP`
-                }
+              ${
+                p.hasSizes
+                ? `M - ${p.price} EGP | L - ${p.largePrice} EGP`
+                : `${p.price} EGP`
+              }
               </span>
 
               <i class="fa-solid fa-hand-pointer"></i>
 
-              </div>
-
             </div>
 
-            ${isAdmin ? `
-              <div class="admin-actions">
+          </div>
 
-                <button class="move-btn"
-                  onclick="event.stopPropagation();
-                  moveUp('${p.id}')">
-                  ▲
-                </button>
+          ${isAdmin ? `
 
-                <button class="move-btn"
-                  onclick="event.stopPropagation();
-                  moveDown('${p.id}')">
-                  ▼
-                </button>
+          <div class="admin-actions">
 
-                <button class="edit-btn"
-                  onclick="event.stopPropagation();
-                  setEdit(
-                    '${p.id}',
-                    '${p.name}',
-                    '${p.price}',
-                    '${p.description || ""}',
-                    '${p.description_ar || ""}',
-                    '${p.category}'
-                  )">
-                  Edit
-                </button>
+            <button
+              class="move-btn"
+              onclick="
+              event.stopPropagation();
+              moveUp('${p.id}')
+              ">
+              ▲
+            </button>
 
-                <button class="delete-btn"
-                  onclick="event.stopPropagation();
-                  deleteProduct('${p.id}')">
-                  Delete
-                </button>
+            <button
+              class="move-btn"
+              onclick="
+              event.stopPropagation();
+              moveDown('${p.id}')
+              ">
+              ▼
+            </button>
 
-              </div>
-            ` : ""}
+            <button
+              class="edit-btn"
+              onclick="
+              event.stopPropagation();
+              setEdit('${p.id}')
+              ">
+              Edit
+            </button>
+
+            <button
+              class="delete-btn"
+              onclick="
+              event.stopPropagation();
+              deleteProduct('${p.id}')
+              ">
+              Delete
+            </button>
 
           </div>
-        `;
-      });
+
+          ` : ""}
+
+        </div>
+      `;
+    });
+
   });
 
+  // ================= SCROLL TO UPDATED PRODUCT
   if (updatedProductId) {
 
     const updatedElement =
@@ -1420,9 +1576,11 @@ function renderMenu(filterCat = null) {
       });
 
       setTimeout(() => {
+
         updatedElement.classList.remove(
           "updated-highlight"
         );
+
       }, 2000);
     }
 
