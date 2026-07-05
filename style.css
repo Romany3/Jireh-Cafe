@@ -1349,6 +1349,93 @@ i{
   cursor: pointer;
 }
 
+/* ================= ALERT BUTTONS ================= */
+
+.alert-buttons{
+  display: flex;
+
+  gap: 12px;
+
+  justify-content: center;
+
+  margin-top: 20px;
+}
+
+#alertBtn,
+#cancelBtn{
+
+  min-width: 120px;
+
+  padding: 12px 22px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+
+  box-shadow:
+    0 10px 20px rgba(0,0,0,0.18);
+}
+
+/* زرار OK */
+
+#alertBtn{
+
+  background:
+    linear-gradient(
+      135deg,
+      #f5c16c,
+      #d89d3f
+    );
+
+  color: #111;
+}
+
+#alertBtn:hover{
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 15px 25px rgba(245,193,108,0.25);
+}
+
+/* زرار Cancel */
+
+#cancelBtn{
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.08),
+      rgba(255,255,255,0.04)
+    );
+
+  color: white;
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+}
+
+#cancelBtn:hover{
+
+  transform: translateY(-2px);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.15),
+      rgba(255,255,255,0.08)
+    );
+
+  box-shadow:
+    0 15px 25px rgba(255,255,255,0.08);
+}
+
 /* ================= DRINK CHECK ================= */
 .drink-check{
   display: flex;

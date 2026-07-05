@@ -368,6 +368,7 @@ function setupAdminEvents() {
       document.getElementById("pdesc").value = "";
       document.getElementById("pdesc_ar").value = "";
       document.getElementById("pimage").value = "";
+      document.getElementById("previewImg").src = "";
       document.getElementById("imagePreview").style.display = "none";
       document.getElementById("hasSizes").checked = false;
 
@@ -402,11 +403,36 @@ function setupAdminEvents() {
   // ================= DELETE PRODUCT
   window.deleteProduct = async (id) => {
 
-    await deleteDoc(doc(db, "products", id));
+    const product =
+      products.find(
+        p => p.id === id
+      );
 
-    showAlert("Success ✅", "Product Deleted Successfully");
+    if(!product) return;
 
-    loadData();
+    showAlert(
+      "Delete Product",
+      `Delete "${product.name}" ?`,
+      async () => {
+
+        await deleteDoc(
+          doc(
+            db,
+            "products",
+            id
+          )
+        );
+
+        showAlert(
+          "Success ✅",
+          "Product Deleted Successfully"
+        );
+
+        loadData();
+
+      },
+      true
+    );
   };
 
   // ================= EDIT PRODUCT
@@ -660,6 +686,7 @@ function setupAdminEvents() {
     document.getElementById("editDesc").value = "";
     document.getElementById("editDesc_ar").value = "";
     document.getElementById("editImage").value = "";
+    document.getElementById("editPreviewImg").src = "";
     document.getElementById("editImagePreview").style.display = "none";
     document.getElementById("editHasSizes").checked = false;
     document.getElementById("editLargePrice").disabled = true;
@@ -828,11 +855,44 @@ function setupAdminEvents() {
     // لو فيه منتجات مرتبطة
     if(relatedProducts.length > 0){
 
-      const confirmDelete = confirm(
-        `This category contains ${relatedProducts.length} products.\nDelete everything?`
+      showAlert(
+      "Warning ⚠️",
+      `This category contains ${relatedProducts.length} products.
+
+      Delete everything?`,
+      async ()=>{
+
+      for(const product of relatedProducts){
+
+      await deleteDoc(
+      doc(
+      db,
+      "products",
+      product.id
+      )
+      );
+      }
+
+      await deleteDoc(
+      doc(
+      db,
+      "categories",
+      id
+      )
       );
 
-      if(!confirmDelete) return;
+      showAlert(
+      "Success ✅",
+      "Category Deleted Successfully"
+      );
+
+      loadData();
+
+      },
+      true
+      );
+
+      return;
 
       // حذف المنتجات المرتبطة
       for(const product of relatedProducts){
@@ -914,26 +974,66 @@ const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
 
 // ================= CUSTOM ALERT FUNCTION
-function showAlert(title, message) {
+function showAlert(
+title,
+message,
+callback = null,
+showCancel = false
+){
 
-  const alertBox =
-    document.getElementById("customAlert");
+const alertBox =
+document.getElementById(
+"customAlert"
+);
 
-  document.getElementById("alertTitle")
-    .innerText = title;
+const okBtn =
+document.getElementById(
+"alertBtn"
+);
 
-  document.getElementById("alertMessage")
-    .innerText = message;
+const cancelBtn =
+document.getElementById(
+"cancelBtn"
+);
 
-  alertBox.classList.add("show");
+document.getElementById(
+"alertTitle"
+).innerText = title;
+
+document.getElementById(
+"alertMessage"
+).innerText = message;
+
+
+// اظهار او اخفاء زرار cancel
+cancelBtn.style.display =
+showCancel
+? "inline-block"
+: "none";
+
+okBtn.onclick = ()=>{
+
+alertBox.classList.remove(
+"show"
+);
+
+if(callback){
+callback();
 }
-
-// CLOSE ALERT
-document.getElementById("alertBtn").onclick = () => {
-
-  document.getElementById("customAlert")
-    .classList.remove("show");
 };
+
+cancelBtn.onclick = ()=>{
+
+alertBox.classList.remove(
+"show"
+);
+};
+
+alertBox.classList.add(
+"show"
+);
+
+}
 
 // ================= INIT ADMIN STATE
 onAuthStateChanged(auth, (user) => {
