@@ -483,6 +483,48 @@ i{
     0 0 18px rgba(245,193,108,0.15);
 }
 
+.login-card{
+  position: relative;
+}
+
+#closeLogin{
+
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 45px !important;
+  height: 45px;
+  margin: 15px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.06);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+}
+
+#closeLogin:hover{
+
+  background: rgba(255,95,95,0.2);
+
+  color: #ff7b7b86;
+
+  box-shadow: 0 0 10px rgba(255,95,95,0.25);
+}
+
+#closeLogin:active{
+
+  transform:
+    scale(0.92);
+}
+
 .login-card button {
 
   width: 100%;
